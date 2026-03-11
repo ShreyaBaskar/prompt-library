@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% block title %}PromptLib — Smart Prompt Library for Students & HR{% endblock %}
+{% block content %}
+
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="hero-badge">✦ Curated Prompt Library</div>
+    <h1 class="hero-title">
+      Find the <span class="hero-accent">perfect prompt</span><br>for every task
+    </h1>
+    <p class="hero-sub">
+      <span data-i18n="heroSub">Discover AI prompts for academic work, career growth, and HR communication.</span><br>
+      <strong>{{ total_prompts }}+ curated prompts</strong> — always free, no AI generation.
+    </p>
+    <div class="hero-search-bar">
+      <form action="/search" method="GET">
+        <input type="hidden" name="mode" value="smart">
+        <input type="text" name="q" placeholder="Describe what you need... e.g. email asking professor for leave" class="hero-input">
+        <button type="submit" class="btn btn-primary hero-btn">
+          <span data-i18n="smartFind">Smart Find</span> →
+        </button>
+      </form>
+    </div>
+    <div class="hero-tags">
+      <a href="/search?category=Leave+Letters" class="tag">Leave Letters</a>
+      <a href="/search?category=Resume+Builder" class="tag">Resume Builder</a>
+      <a href="/search?category=Interview+Preparation" class="tag">Interview Prep</a>
+      <a href="/search?category=Study+Plan+Creation" class="tag">Study Plans</a>
+      <a href="/search?category=Internship+Application" class="tag">Internship Email</a>
+    </div>
+  </div>
+</section>
+
+<section class="stats-strip">
+  <div class="stat-item">
+    <span class="stat-num">{{ total_prompts }}+</span>
+    <span class="stat-label">Curated Prompts</span>
+  </div>
+  <div class="stat-divider"></div>
+  <div class="stat-item">
+    <span class="stat-num">6</span>
+    <span class="stat-label">Categories</span>
+  </div>
+  <div class="stat-divider"></div>
+  <div class="stat-item">
+    <span class="stat-num">Free</span>
+    <span class="stat-label">Always</span>
+  </div>
+  <div class="stat-divider"></div>
+  <div class="stat-item">
+    <span class="stat-num">⚡</span>
+    <span class="stat-label">Smart Search</span>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="section-title" data-i18n="featuredPrompts">Featured Prompts</h2>
+      <a href="/prompts" class="section-link">View all →</a>
+    </div>
+    <div class="prompts-grid">
+      {% for prompt in featured_prompts %}
+      <div class="prompt-card" data-id="{{ prompt.id }}">
+        <div class="card-header">
+          <span class="card-category">{{ prompt.subcategory }}</span>
+          <button class="fav-btn {% if prompt.is_fav %}fav-active{% endif %}"
+                  onclick="toggleFav({{ prompt.id }}, this)"
+                  title="Add to Favourites">
+            {% if prompt.is_fav %}♥{% else %}♡{% endif %}
+          </button>
+        </div>
+        <h3 class="card-title">{{ prompt.title }}</h3>
+        <span class="card-tag">{{ prompt.category }}</span>
+        <p class="card-preview">{{ prompt.preview }}</p>
+        <div class="card-rating">
+          <span class="stars">{{ '★' * prompt.avg_rating|int }}{{ '☆' * (5 - prompt.avg_rating|int) }}</span>
+          <span class="rating-val">{{ prompt.avg_rating }}</span>
+          <span class="review-count">({{ prompt.review_count }} reviews)</span>
+        </div>
+        <div class="card-actions">
+          <button class="btn btn-sm btn-outline copy-btn" onclick="copyPrompt({{ prompt.id }}, this)">
+            📋 <span data-i18n="copyPrompt">Copy Prompt</span>
+          </button>
+          <a href="/prompts/{{ prompt.id }}" class="btn btn-sm btn-ghost">View →</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="center-cta">
+      <a href="/prompts" class="btn btn-primary btn-lg" data-i18n="exploreAll">Explore All Prompts</a>
+    </div>
+  </div>
+</section>
+
+<section class="section section-dark">
+  <div class="container">
+    <div class="section-header center">
+      <h2 class="section-title">Browse by Category</h2>
+    </div>
+    <div class="categories-grid">
+      <a href="/search?category=Student+Prompts" class="cat-card">
+        <div class="cat-icon">🎓</div>
+        <h3>Student Prompts</h3>
+        <p>Leave letters, assignments, permissions</p>
+      </a>
+      <a href="/search?category=AI+Study+Assistance" class="cat-card">
+        <div class="cat-icon">🧠</div>
+        <h3>AI Study Assistance</h3>
+        <p>Tutoring, study plans, summaries</p>
+      </a>
+      <a href="/search?category=Career+%26+HR+Prompts" class="cat-card">
+        <div class="cat-icon">💼</div>
+        <h3>Career & HR</h3>
+        <p>Resumes, interview prep, HR comms</p>
+      </a>
+      <a href="/search?category=Professional+Emails" class="cat-card">
+        <div class="cat-icon">📧</div>
+        <h3>Professional Emails</h3>
+        <p>Internship, job, follow-up emails</p>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="smart-finder-promo">
+      <div class="promo-content">
+        <div class="promo-badge">✦ AI-Powered</div>
+        <h2>Smart Prompt Finder</h2>
+        <p>Describe your need in plain language and our semantic search engine finds the most relevant prompts from our curated library.</p>
+        <a href="/search?mode=smart" class="btn btn-primary">Try Smart Finder →</a>
+      </div>
+      <div class="promo-demo">
+        <div class="demo-box">
+          <div class="demo-label">You type:</div>
+          <div class="demo-input">"email asking professor for leave"</div>
+          <div class="demo-arrow">↓</div>
+          <div class="demo-label">We find:</div>
+          <div class="demo-result">✓ Leave Letter to Professor</div>
+          <div class="demo-result">✓ Permission Letter for Event</div>
+          <div class="demo-result">✓ Cold Email to Professor</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div id="toast" class="toast hidden"></div>
+<div id="guestWarning" class="guest-warning hidden">
+  <span id="guestCount">5</span> free uses remaining. <a href="/signup">Sign up</a> for unlimited access.
+</div>
+
+{% endblock %}

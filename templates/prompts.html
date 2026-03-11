@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}All Prompts — PromptLib{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div class="container">
+    <h1 class="page-title" data-i18n="explorePrompts">Explore Prompts</h1>
+    <p class="page-sub">{{ prompts|length }} curated prompts across all categories</p>
+  </div>
+</div>
+
+<div class="container layout-two-col">
+  <!-- Sidebar Filter -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <h3 class="sidebar-title">Filter by Category</h3>
+      <a href="/prompts" class="sidebar-link {% if not request.args.get('category') %}active{% endif %}">All Prompts</a>
+      {% for subcategory, cats in categories.items() %}
+        <div class="sidebar-group">
+          <span class="sidebar-group-label">{{ subcategory }}</span>
+          {% for cat in cats %}
+            <a href="/search?category={{ cat|urlencode }}" class="sidebar-link sub">{{ cat }}</a>
+          {% endfor %}
+        </div>
+      {% endfor %}
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="toolbar">
+      <form action="/search" method="GET" class="search-mini">
+        <input type="text" name="q" placeholder="Search prompts..." class="input-sm">
+        <button type="submit" class="btn btn-sm btn-primary">Search</button>
+      </form>
+    </div>
+    <div class="prompts-grid">
+      {% for prompt in prompts %}
+      <div class="prompt-card" data-id="{{ prompt.id }}">
+        <div class="card-header">
+          <span class="card-category">{{ prompt.subcategory }}</span>
+          <button class="fav-btn {% if prompt.is_fav %}fav-active{% endif %}"
+                  onclick="toggleFav({{ prompt.id }}, this)">
+            {% if prompt.is_fav %}♥{% else %}♡{% endif %}
+          </button>
+        </div>
+        <h3 class="card-title">{{ prompt.title }}</h3>
+        <span class="card-tag">{{ prompt.category }}</span>
+        <p class="card-preview">{{ prompt.preview }}</p>
+        <div class="card-rating">
+          <span class="stars">{{ '★' * prompt.avg_rating|int }}{{ '☆' * (5 - prompt.avg_rating|int) }}</span>
+          <span class="rating-val">{{ prompt.avg_rating }}</span>
+          <span class="review-count">({{ prompt.review_count }})</span>
+        </div>
+        <div class="card-actions">
+          <button class="btn btn-sm btn-outline copy-btn" onclick="copyPrompt({{ prompt.id }}, this)">
+            📋 Copy
+          </button>
+          <a href="/prompts/{{ prompt.id }}" class="btn btn-sm btn-ghost">View →</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+{% endblock %}

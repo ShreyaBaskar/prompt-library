@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}Search Prompts — PromptLib{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div class="container">
+    <h1 class="page-title" data-i18n="searchPrompts">Search Prompts</h1>
+  </div>
+</div>
+
+<div class="container">
+  <div class="search-modes">
+    <a href="/search?mode=keyword" class="mode-tab {% if mode != 'smart' %}active{% endif %}" data-i18n="keywordSearch">Keyword Search</a>
+    <a href="/search?mode=smart" class="mode-tab {% if mode == 'smart' %}active{% endif %}" data-i18n="smartFinder">✦ Smart Prompt Finder</a>
+  </div>
+
+  {% if mode == 'smart' %}
+  <div class="smart-search-box">
+    <div class="smart-badge">✦ Semantic Search powered by sentence-transformers</div>
+    <form action="/search" method="GET">
+      <input type="hidden" name="mode" value="smart">
+      <div class="smart-input-row">
+        <input type="text" name="q" value="{{ query }}"
+               placeholder="Describe what you need... e.g. 'email asking professor for leave'"
+               class="smart-input">
+        <button type="submit" class="btn btn-primary" data-i18n="findPrompts">Find Prompts</button>
+      </div>
+    </form>
+    {% if not query %}
+    <div class="smart-examples">
+      <span>Try:</span>
+      <a href="/search?mode=smart&q=email+asking+professor+for+leave" class="example-chip">email asking professor for leave</a>
+      <a href="/search?mode=smart&q=prepare+for+job+interview" class="example-chip">prepare for job interview</a>
+      <a href="/search?mode=smart&q=write+a+resume" class="example-chip">write a resume</a>
+      <a href="/search?mode=smart&q=study+plan+for+exams" class="example-chip">study plan for exams</a>
+    </div>
+    {% endif %}
+  </div>
+  {% else %}
+  <div class="keyword-search-box">
+    <form action="/search" method="GET">
+      <input type="hidden" name="mode" value="keyword">
+      <div class="keyword-row">
+        <input type="text" name="q" value="{{ query }}" placeholder="Search by keyword..." class="smart-input">
+        <select name="category" class="select-sm">
+          <option value="">All Categories</option>
+          {% for subcategory, cats in categories.items() %}
+            <optgroup label="{{ subcategory }}">
+              {% for cat in cats %}
+              <option value="{{ cat }}" {% if category == cat %}selected{% endif %}>{{ cat }}</option>
+              {% endfor %}
+            </optgroup>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary" data-i18n="search">Search</button>
+      </div>
+    </form>
+  </div>
+  {% endif %}
+
+  {% if query or category %}
+  <div class="results-header">
+    <span>{{ prompts|length }} result{{ 's' if prompts|length != 1 else '' }}
+    {% if query %}for "<strong>{{ query }}</strong>"{% endif %}
+    {% if category %}in <strong>{{ category }}</strong>{% endif %}
+    </span>
+  </div>
+  {% endif %}
+
+  {% if prompts %}
+  <div class="prompts-grid">
+    {% for prompt in prompts %}
+    <div class="prompt-card" data-id="{{ prompt.id }}">
+      <div class="card-header">
+        <span class="card-category">{{ prompt.subcategory }}</span>
+        <button class="fav-btn {% if prompt.is_fav %}fav-active{% endif %}"
+                onclick="toggleFav({{ prompt.id }}, this)">
+          {% if prompt.is_fav %}♥{% else %}♡{% endif %}
+        </button>
+      </div>
+      <h3 class="card-title">{{ prompt.title }}</h3>
+      <span class="card-tag">{{ prompt.category }}</span>
+      <p class="card-preview">{{ prompt.preview }}</p>
+      <div class="card-rating">
+        <span class="stars">{{ '★' * prompt.avg_rating|int }}{{ '☆' * (5 - prompt.avg_rating|int) }}</span>
+        <span class="rating-val">{{ prompt.avg_rating }}</span>
+        <span class="review-count">({{ prompt.review_count }})</span>
+      </div>
+      <div class="card-actions">
+        <button class="btn btn-sm btn-outline copy-btn" onclick="copyPrompt({{ prompt.id }}, this)">
+          📋 Copy
+        </button>
+        <a href="/prompts/{{ prompt.id }}" class="btn btn-sm btn-ghost">View →</a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% elif query or category %}
+  <div class="empty-state">
+    <div class="empty-icon">🔍</div>
+    <h3>No prompts found</h3>
+    <p>Try different keywords or use Smart Finder for semantic search.</p>
+    <a href="/search?mode=smart&q={{ query|urlencode }}" class="btn btn-primary">Try Smart Finder</a>
+  </div>
+  {% endif %}
+</div>
+
+<div id="toast" class="toast hidden"></div>
+{% endblock %}

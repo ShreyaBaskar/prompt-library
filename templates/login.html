@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Login — PromptLib{% endblock %}
+{% block content %}
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-brand">⬡ PromptLib</div>
+    <h1 class="auth-title" data-i18n="login">Login</h1>
+    <p class="auth-sub">Welcome back. Access your saved prompts and favourites.</p>
+    <form method="POST" class="auth-form">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" name="email" required placeholder="you@example.com" class="input">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" name="password" required placeholder="••••••••" class="input">
+      </div>
+      <button type="submit" class="btn btn-primary btn-full" data-i18n="login">Login</button>
+    </form>
+    <p class="auth-footer">Don't have an account? <a href="/signup" data-i18n="signup">Sign Up</a></p>
+    <div class="auth-demo">
+      <strong>Demo Owner Account:</strong><br>
+      admin@promptlibrary.com / admin123
+    </div>
+  </div>
+</div>
+{% endblock %}

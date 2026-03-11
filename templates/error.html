@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}{{ code }} — PromptLib{% endblock %}
+{% block content %}
+<div class="empty-state" style="padding: 120px 20px;">
+  <div class="empty-icon">{{ code }}</div>
+  <h3>{{ message }}</h3>
+  <a href="/" class="btn btn-primary">Go Home</a>
+</div>
+{% endblock %}

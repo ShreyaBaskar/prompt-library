@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Favourites — PromptLib{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <h1 class="page-title" data-i18n="favourites">My Favourites</h1>
+    <p class="page-sub">{{ prompts|length }} saved prompt{{ 's' if prompts|length != 1 else '' }}</p>
+  </div>
+</div>
+<div class="container">
+  {% if prompts %}
+  <div class="prompts-grid">
+    {% for prompt in prompts %}
+    <div class="prompt-card" data-id="{{ prompt.id }}">
+      <div class="card-header">
+        <span class="card-category">{{ prompt.subcategory }}</span>
+        <button class="fav-btn fav-active" onclick="toggleFav({{ prompt.id }}, this)">♥</button>
+      </div>
+      <h3 class="card-title">{{ prompt.title }}</h3>
+      <span class="card-tag">{{ prompt.category }}</span>
+      <p class="card-preview">{{ prompt.preview }}</p>
+      <div class="card-rating">
+        <span class="stars">{{ '★' * prompt.avg_rating|int }}{{ '☆' * (5 - prompt.avg_rating|int) }}</span>
+        <span class="rating-val">{{ prompt.avg_rating }}</span>
+      </div>
+      <div class="card-actions">
+        <button class="btn btn-sm btn-outline copy-btn" onclick="copyPrompt({{ prompt.id }}, this)">📋 Copy</button>
+        <a href="/prompts/{{ prompt.id }}" class="btn btn-sm btn-ghost">View →</a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">♡</div>
+    <h3>No favourites yet</h3>
+    <p>Browse prompts and click the heart icon to save your favourites.</p>
+    <a href="/prompts" class="btn btn-primary">Browse Prompts</a>
+  </div>
+  {% endif %}
+</div>
+<div id="toast" class="toast hidden"></div>
+{% endblock %}

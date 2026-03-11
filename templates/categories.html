@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Categories — PromptLib{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <h1 class="page-title" data-i18n="categories">Categories</h1>
+    <p class="page-sub">Browse prompts organized by purpose and use-case</p>
+  </div>
+</div>
+<div class="container">
+  {% for subcategory, cats in categories.items() %}
+  <div class="category-section">
+    <h2 class="cat-section-title">{{ subcategory }}</h2>
+    <div class="cat-cards-row">
+      {% for cat in cats %}
+      {% set cat_prompts = prompts | selectattr('category', 'equalto', cat) | list %}
+      <a href="/search?category={{ cat|urlencode }}" class="cat-detail-card">
+        <div class="cat-detail-icon">
+          {% if 'Leave' in cat or 'Permission' in cat %}🏫
+          {% elif 'Resume' in cat or 'Job' in cat or 'Career' in cat %}💼
+          {% elif 'Interview' in cat %}🎤
+          {% elif 'Study' in cat or 'Tutor' in cat %}📚
+          {% elif 'Research' in cat %}🔬
+          {% elif 'Email' in cat or 'Internship' in cat %}📧
+          {% elif 'HR' in cat %}👥
+          {% elif 'Summariz' in cat %}📝
+          {% else %}✦{% endif %}
+        </div>
+        <div class="cat-detail-content">
+          <h3>{{ cat }}</h3>
+          <span class="cat-count">{{ cat_prompts|length }} prompt{{ 's' if cat_prompts|length != 1 else '' }}</span>
+        </div>
+        <span class="cat-arrow">→</span>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

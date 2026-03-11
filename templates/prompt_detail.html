@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% block title %}{{ prompt.title }} — PromptLib{% endblock %}
+{% block content %}
+
+<div class="container detail-layout">
+  <a href="/prompts" class="back-link">← Back to Prompts</a>
+
+  <div class="detail-grid">
+    <div class="detail-main">
+      <div class="detail-header">
+        <div>
+          <span class="card-category">{{ prompt.subcategory }}</span>
+          <span class="card-tag ml">{{ prompt.category }}</span>
+        </div>
+        <h1 class="detail-title">{{ prompt.title }}</h1>
+        <div class="card-rating">
+          <span class="stars">{{ '★' * avg_rating|int }}{{ '☆' * (5 - avg_rating|int) }}</span>
+          <span class="rating-val">{{ avg_rating }}</span>
+        </div>
+      </div>
+
+      <div class="prompt-block-wrapper">
+        <div class="prompt-block-label">Prompt Template</div>
+        <div class="prompt-block" id="promptBlock">{{ personalized or prompt.template }}</div>
+        <div class="prompt-block-actions">
+          <button class="btn btn-primary" onclick="copyPromptText()">📋 Copy Prompt</button>
+          <button class="fav-btn-lg {% if is_fav %}fav-active{% endif %}"
+                  onclick="toggleFav({{ prompt.id }}, this)">
+            {% if is_fav %}♥ Saved{% else %}♡ Save{% endif %}
+          </button>
+        </div>
+      </div>
+
+      {% if current_user.is_authenticated %}
+      <div class="personalize-note">
+        <span>✦</span> This prompt is personalized with your profile data.
+        <a href="/profile">Update profile →</a>
+      </div>
+      {% endif %}
+
+      <!-- Rate this prompt -->
+      <div class="rate-section">
+        <h3>Rate this Prompt</h3>
+        <div class="star-rating" id="starRating" data-prompt="{{ prompt.id }}">
+          {% for i in range(1, 6) %}
+          <span class="star" data-val="{{ i }}" onclick="ratePrompt({{ prompt.id }}, {{ i }})">☆</span>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Reviews -->
+      <div class="reviews-section">
+        <h3>Reviews</h3>
+        <div id="reviewsList">
+          {% for review in reviews %}
+          <div class="review-card">
+            <div class="review-header">
+              <span class="review-author">{{ review.reviewer_name }}</span>
+              <span class="review-date">{{ review.created_at.strftime('%b %d, %Y') }}</span>
+            </div>
+            <p class="review-content">{{ review.content }}</p>
+          </div>
+          {% endfor %}
+          {% if not reviews %}
+          <p class="empty-state-sm">No reviews yet. Be the first!</p>
+          {% endif %}
+        </div>
+
+        {% if current_user.is_authenticated %}
+        <div class="add-review">
+          <h4>Write a Review</h4>
+          <div class="review-stars" id="reviewStars">
+            {% for i in range(1, 6) %}
+            <span class="star" data-val="{{ i }}" onclick="setReviewStar({{ i }})">☆</span>
+            {% endfor %}
+          </div>
+          <textarea id="reviewText" placeholder="Share your experience with this prompt..." class="review-textarea"></textarea>
+          <button class="btn btn-primary" onclick="submitReview({{ prompt.id }})">Submit Review</button>
+        </div>
+        {% else %}
+        <p class="login-prompt"><a href="/login">Log in</a> to write a review.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="detail-sidebar">
+      <div class="info-card">
+        <h3>Prompt Details</h3>
+        <div class="info-row"><span>Category</span><strong>{{ prompt.category }}</strong></div>
+        <div class="info-row"><span>Level</span><strong>{{ prompt.difficulty|capitalize }}</strong></div>
+        <div class="info-row"><span>Use Case</span><strong>{{ prompt.use_case|capitalize }}</strong></div>
+      </div>
+      <div class="tags-card">
+        <h3>Tags</h3>
+        <div class="tags-list">
+          {% for tag in prompt.tags %}
+          <a href="/search?q={{ tag|urlencode }}" class="tag">{{ tag }}</a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+const PROMPT_ID = {{ prompt.id }};
+let reviewStarVal = 0;
+
+function copyPromptText() {
+  const text = document.getElementById('promptBlock').innerText;
+  navigator.clipboard.writeText(text).then(() => showToast('Prompt copied!'));
+}
+
+function ratePrompt(promptId, stars) {
+  document.querySelectorAll('#starRating .star').forEach((s, i) => {
+    s.textContent = i < stars ? '★' : '☆';
+    s.style.color = i < stars ? '#f59e0b' : '#ccc';
+  });
+  fetch('/api/rate', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({prompt_id: promptId, stars: stars})
+  });
+}
+
+function setReviewStar(val) {
+  reviewStarVal = val;
+  document.querySelectorAll('#reviewStars .star').forEach((s, i) => {
+    s.textContent = i < val ? '★' : '☆';
+    s.style.color = i < val ? '#f59e0b' : '#ccc';
+  });
+}
+
+function submitReview(promptId) {
+  const content = document.getElementById('reviewText').value.trim();
+  if (!content) { showToast('Please write a review first.'); return; }
+  fetch('/api/add-review', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({prompt_id: promptId, content: content, stars: reviewStarVal})
+  }).then(r => r.json()).then(data => {
+    if (data.success) {
+      document.getElementById('reviewText').value = '';
+      const div = document.createElement('div');
+      div.className = 'review-card new-review';
+      div.innerHTML = `<div class="review-header"><span class="review-author">${data.name}</span><span class="review-date">Just now</span></div><p class="review-content">${data.content}</p>`;
+      document.getElementById('reviewsList').prepend(div);
+      showToast('Review submitted!');
+    }
+  });
+}
+</script>
+{% endblock %}
